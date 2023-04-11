@@ -1,0 +1,65 @@
+Для реализации параллельного процесса средствами Linux/Windows и синхронизации доступа к общему ресурсу 
+(файл, канал, pipe, очередь, mmap, smmem) можно использовать примитивы синхронизации операционных систем, 
+такие как мьютексы, семафоры и условные переменные.
+
+Пример кода на языке С для создания мьютекса и синхронизации доступа к общему файлу: #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <pthread.h>
+
+void *write_file(void *arg);
+void *read_file(void *arg);
+
+pthread_mutex_t mutex;
+FILE *fp;
+
+int main(int argc, char **argv) {
+    pthread_t writer, reader;
+
+    fp = fopen("test.txt", "w+");
+
+    pthread_mutex_init(&mutex, NULL);
+    pthread_create(&writer, NULL, write_file, NULL);
+    pthread_create(&reader, NULL, read_file, NULL);
+   
+    pthread_join(writer, NULL);
+    pthread_join(reader, NULL);
+
+    pthread_mutex_destroy(&mutex);
+    fclose(fp);
+    
+    return 0;
+}
+
+void *write_file(void *arg) {
+    char *message = "Hello, world!";
+    int i;
+    for (i = 0; i < strlen(message); i++) {
+        pthread_mutex_lock(&mutex);
+        fputc(message[i], fp);
+        pthread_mutex_unlock(&mutex);
+    }
+    pthread_exit(NULL);
+}
+
+void *read_file(void *arg) {
+    char c;
+    while(1) {
+        pthread_mutex_lock(&mutex);
+        if((c = fgetc(fp)) != EOF) {
+            printf("%c", c);
+        } else {
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
+        pthread_mutex_unlock(&mutex);
+    }
+    pthread_exit(NULL);
+}
+В данном примере мы создаем мьютекс для синхронизации доступа к файлу "test.txt", 
+который будут использовать как писатель, так и читатель. 
+В функции write_file мы блокируем мьютекс перед записью в файл и разблокируем его после записи. 
+Аналогичным образом в функции read_file мы блокируем и разблокируем мьютекс перед чтением из файла.
+
+Другие примитивы синхронизации, такие как семафоры и условные переменные, 
+могут быть использованы аналогичным образом в зависимости от требований конкретной задачи.

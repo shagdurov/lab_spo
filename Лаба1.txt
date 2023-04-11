@@ -1,0 +1,49 @@
+// Пример программы на языке C
+
+#include <stdio.h>
+
+int main() {
+int first = 5, second = 10, result;
+result = first + second;
+printf("Сумма чисел %d и %d равна %d", first, second, result);
+return 0;
+}
+
+// Генерируем ассемблерный код с опцией -O2
+
+gcc -S -o example.s example.c -O2
+
+// Ассемблерный код с комментариями
+
+// Функция main
+main:
+// Регистры
+    pushq	%rbp
+    movq	%rsp, %rbp
+// Выполнение арифметических операций
+    movl	$15, %eax
+    movl	$0, %edx
+    leal	(%rax,%rdx), %ecx
+// Вывод результата
+    movl	$5, %edx
+    movl	$10, %esi
+    movl	$.LC0, %edi
+    movl	$0, %eax
+    call	printf
+// Выход из функции main
+    movl	$0, %eax
+    popq	%rbp
+    ret
+.LFE0:
+	.size	main, .-main
+	.section	.rodata
+// Формат вывода результата
+.LC0:
+    .string	"Сумма чисел %d и %d равна %d"
+    .text
+// В ассемблерном коде можно найти следующее:
+// - Функция main
+// - Регистры (например, %rbp)
+// - Арифметические операции (например, movl, leal)
+// - Вывод результата (например, movl, call)
+// - Формат вывода результата (например, .LC0)
